@@ -1,0 +1,54 @@
+{
+  "name": "Vijay Dairy Forecast Dashboard",
+  "short_name": "Vijay Forecast",
+  "description": "Weekly 1% Growth Forecast - Plant & Village Analysis",
+  "start_url": "/Weekly-1-Growth/",
+  "scope": "/Weekly-1-Growth/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0C8542",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%230C8542' width='192' height='192'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dominant-baseline='central' font-weight='bold'>VD</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%230C8542' width='512' height='512'/><text x='50%' y='50%' font-size='280' fill='white' text-anchor='middle' dominant-baseline='central' font-weight='bold'>VD</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["productivity", "business"],
+  "shortcuts": [
+    {
+      "name": "Plant 1% Growth",
+      "short_name": "Plant Growth",
+      "description": "View Plant-wide forecast data",
+      "url": "/Weekly-1-Growth/forecast_dashboard_2026_2029.html",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%230C8542' width='96' height='96'/><text x='48' y='48' font-size='50' fill='white' text-anchor='middle' dominant-baseline='central'>🏭</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Village 1% Growth",
+      "short_name": "Village Growth",
+      "description": "View Village-wise forecast data",
+      "url": "/Weekly-1-Growth/village_forecast_WITH_AVERAGES.html",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%230C8542' width='96' height='96'/><text x='48' y='48' font-size='50' fill='white' text-anchor='middle' dominant-baseline='central'>🏘️</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
+}
