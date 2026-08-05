@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vijay Dairy - Forecast Dashboard 2026-2029</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #0C8542 0%, #065a2e 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 0.95em;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .kpi-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid #0C8542;
+            text-align: center;
+        }
+        
+        .kpi-card h3 {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        
+        .kpi-card .value {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #0C8542;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+        
+        .chart-container h2 {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 350px;
+        }
+        
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+        
+        .table-container h2 {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: #0C8542;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #065a2e;
+        }
+        
+        .month-badge {
+            display: inline-block;
+            background: #0C8542;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+        
+        table thead {
+            background: #f8f9fa;
+            border-bottom: 2px solid #ddd;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        table th {
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            white-space: nowrap;
+        }
+        
+        table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        input.volume-input {
+            width: 120px;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: right;
+        }
+        
+        input.volume-input:focus {
+            outline: none;
+            border-color: #0C8542;
+            box-shadow: 0 0 0 2px rgba(12, 133, 66, 0.1);
+        }
+        
+        .numeric {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .growth-up {
+            color: #0C8542;
+            font-weight: 600;
+        }
+        
+        .growth-down {
+            color: #D81F26;
+            font-weight: 600;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Vijay Dairy - Weekly 1% Growth Forecast</h1>
+            <p>July 2026 (Week 27) to December 2029 | Click to Edit Volumes</p>
+        </div>
+        
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <h3>Period</h3>
+                <div class="value">2026-2029</div>
+            </div>
+            <div class="kpi-card">
+                <h3>Total Weeks</h3>
+                <div class="value" id="totalWeeks">-</div>
+            </div>
+            <div class="kpi-card">
+                <h3>Start Volume (LPD)</h3>
+                <div class="value" id="startVolume">-</div>
+            </div>
+            <div class="kpi-card">
+                <h3>Last Updated</h3>
+                <div class="value" id="updateTime" style="font-size: 0.9em;">-</div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h2>📈 Weekly Volume Forecast Trend</h2>
+            <div class="chart-wrapper">
+                <canvas id="forecastChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="downloadData()">📥 Export CSV</button>
+            <button class="btn" onclick="resetAllData()">🔄 Reset All</button>
+        </div>
+        
+        <div class="table-container">
+            <h2>📋 Weekly Forecast Table</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="numeric">Year</th>
+                            <th class="numeric">Week No.</th>
+                            <th>Month</th>
+                            <th class="numeric">Volume (LPD) KG</th>
+                            <th class="numeric">1% Growth</th>
+                            <th class="numeric">Next Weekly Target</th>
+                            <th class="numeric">Weekly Increase</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <footer>
+            Dashboard updated: <span id="dashboardTime">-</span>
+        </footer>
+    </div>
+    
+    <script>
+        let allData = [];
+        let forecastChart = null;
+        
+        // PRE-FILLED DATA from Week 27 onwards
+        const PRE_FILLED_DATA = {
+            27: 45232.03,  // Varagur W27
+            28: 51451.74,  // Varagur W28
+            29: 49910.29,  // Varagur W29
+            30: 50295.11,  // Varagur W30
+            31: 21489.48   // Varagur W31
+        };
+        
+        // Generate weeks from Jul 2026 to Dec 2029
+        function generateWeeks() {
+            const weeks = [];
+            const startDate = new Date(2026, 6, 1); // Jul 1, 2026
+            const endDate = new Date(2029, 11, 31); // Dec 31, 2029
+            
+            // Calculate week 27 start (ISO week)
+            let currentDate = new Date(2026, 5, 29); // Jun 29, 2026 (Week 27 starts)
+            let weekNo = 27;
+            
+            while (currentDate <= endDate) {
+                const year = currentDate.getFullYear();
+                const monthNum = currentDate.getMonth();
+                const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+                
+                const volume = PRE_FILLED_DATA[weekNo] || 0;
+                
+                weeks.push({
+                    'Year': year,
+                    'Week No': weekNo,
+                    'Date': currentDate.toISOString().split('T')[0],
+                    'Month': monthNames[monthNum],
+                    'Volume (LPD)': volume,
+                    '1% Growth': 0,
+                    'Next Weekly Target': 0,
+                    'Weekly Increase': null
+                });
+                
+                // Move to next week
+                currentDate.setDate(currentDate.getDate() + 7);
+                weekNo++;
+                
+                // Reset week number after 52
+                if (weekNo > 52) {
+                    weekNo = 1;
+                }
+            }
+            
+            return weeks;
+        }
+        
+        // Calculate targets when volume is entered
+        function updateTargets() {
+            let previousVolume = null;
+            
+            for (let i = 0; i < allData.length; i++) {
+                const currentVolume = parseFloat(allData[i]['Volume (LPD)']) || 0;
+                
+                if (currentVolume > 0) {
+                    allData[i]['1% Growth'] = Math.round(currentVolume * 0.01 * 100) / 100;
+                    allData[i]['Next Weekly Target'] = Math.round(currentVolume * 1.01 * 100) / 100;
+                    
+                    if (previousVolume !== null) {
+                        allData[i]['Weekly Increase'] = Math.round((currentVolume - previousVolume) * 100) / 100;
+                    } else {
+                        allData[i]['Weekly Increase'] = null;
+                    }
+                    
+                    previousVolume = currentVolume;
+                }
+            }
+            
+            saveData();
+            renderChart();
+            renderTable();
+        }
+        
+        // Handle volume input change
+        function handleVolumeChange(weekIndex, value) {
+            allData[weekIndex]['Volume (LPD)'] = parseFloat(value) || 0;
+            updateTargets();
+        }
+        
+        // Save to localStorage
+        function saveData() {
+            localStorage.setItem('forecastData_2026_2029', JSON.stringify(allData));
+        }
+        
+        // Load from localStorage
+        function loadData() {
+            const saved = localStorage.getItem('forecastData_2026_2029');
+            if (saved) {
+                allData = JSON.parse(saved);
+            } else {
+                allData = generateWeeks();
+                saveData();
+            }
+            updateTargets();
+        }
+        
+        function renderChart() {
+            const ctx = document.getElementById('forecastChart').getContext('2d');
+            const step = 8;
+            const labels = [];
+            const data = [];
+            
+            for (let i = 0; i < allData.length; i += step) {
+                labels.push('W' + allData[i]['Week No'] + ' ' + allData[i]['Year']);
+                data.push(allData[i]['Volume (LPD)'] || 0);
+            }
+            
+            if (forecastChart) forecastChart.destroy();
+            
+            forecastChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Weekly Volume (LPD KG)',
+                        data: data,
+                        borderColor: '#0C8542',
+                        backgroundColor: 'rgba(12, 133, 66, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#0C8542',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: v => v.toLocaleString() }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function renderTable() {
+            let html = '';
+            allData.forEach((row, idx) => {
+                const vol = parseFloat(row['Volume (LPD)']) || 0;
+                const growth = parseFloat(row['1% Growth']) || 0;
+                const target = parseFloat(row['Next Weekly Target']) || 0;
+                const increase = row['Weekly Increase'];
+                
+                html += `
+                    <tr>
+                        <td class="numeric">${row.Year}</td>
+                        <td class="numeric">W${row['Week No']}</td>
+                        <td><span class="month-badge">${row.Month}</span></td>
+                        <td class="numeric">
+                            <input type="number" class="volume-input" 
+                                value="${vol > 0 ? vol : ''}" 
+                                onchange="handleVolumeChange(${idx}, this.value)"
+                                placeholder="Enter">
+                        </td>
+                        <td class="numeric">${growth > 0 ? growth.toFixed(1) : '-'}</td>
+                        <td class="numeric"><strong>${target > 0 ? target.toFixed(0) : '-'}</strong></td>
+                        <td class="numeric ${increase > 0 ? 'growth-up' : increase < 0 ? 'growth-down' : ''}">
+                            ${increase ? (increase > 0 ? '+' + increase.toFixed(1) : increase.toFixed(1)) : '-'}
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('tableBody').innerHTML = html;
+            updateKPIs();
+        }
+        
+        function updateKPIs() {
+            const firstVolume = allData.find(d => d['Volume (LPD)'] > 0);
+            document.getElementById('startVolume').textContent = firstVolume ? 
+                firstVolume['Volume (LPD)'].toLocaleString(undefined, {maximumFractionDigits: 2}) : '-';
+            document.getElementById('totalWeeks').textContent = allData.length;
+            document.getElementById('dashboardTime').textContent = new Date().toLocaleString();
+        }
+        
+        function downloadData() {
+            let csv = 'Year,Week,Month,Volume (LPD),1% Growth,Next Weekly Target,Weekly Increase\n';
+            allData.forEach(row => {
+                csv += `${row.Year},${row['Week No']},${row.Month},${row['Volume (LPD)']},${row['1% Growth']},${row['Next Weekly Target']},${row['Weekly Increase'] || ''}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `forecast_2026_2029.csv`;
+            a.click();
+        }
+        
+        function resetAllData() {
+            if (confirm('Are you sure? This will clear all entered volumes.')) {
+                localStorage.removeItem('forecastData_2026_2029');
+                allData = generateWeeks();
+                renderChart();
+                renderTable();
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            renderChart();
+            renderTable();
+        });
+    </script>
+</body>
+</html>

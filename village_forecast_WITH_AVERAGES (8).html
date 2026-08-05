@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vijay Dairy - Village Weekly Forecast</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #0C8542 0%, #065a2e 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 0.95em;
+        }
+        
+        .container {
+            max-width: 2000px;
+            margin: 0 auto;
+        }
+        
+        .status-bar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .status-bar .status {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.online {
+            background: #0C8542;
+        }
+        
+        .status-dot.offline {
+            background: #D81F26;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .control-group label {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9em;
+        }
+        
+        .control-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9em;
+            min-width: 200px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            background: #0C8542;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #065a2e;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-align: center;
+            border-left: 4px solid #0C8542;
+        }
+        
+        .stat-card h3 {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        
+        .stat-card .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #0C8542;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+        
+        .chart-container h2 {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 350px;
+        }
+        
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+        
+        .table-container h2 {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+        
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8em;
+        }
+        
+        table thead {
+            background: #f8f9fa;
+            border-bottom: 2px solid #ddd;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        table th {
+            padding: 10px 6px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            white-space: nowrap;
+        }
+        
+        table td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .village-badge {
+            display: inline-block;
+            background: #0C8542;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        
+        .numeric {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0C8542;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-box {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box {
+            background: #e8f5e9;
+            border-left: 4px solid #0C8542;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #2e7d32;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Village-wise Weekly 1% Growth Forecast</h1>
+            <p>Live data from Google Sheet | Weekly Analysis with Daily Averages</p>
+        </div>
+        
+        <div class="status-bar">
+            <div class="status">
+                <span class="status-dot offline" id="statusDot"></span>
+                <span id="statusText">Connecting...</span>
+            </div>
+            <div class="status">
+                <span id="lastUpdateText" style="font-size: 0.9em; color: #666;">Last update: -</span>
+            </div>
+        </div>
+        
+        <div id="errorBox"></div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>🏘️ Select Village:</label>
+                <select id="villageFilter" onchange="filterAndRender()" disabled>
+                    <option value="">-- Loading Villages --</option>
+                </select>
+            </div>
+            <a href="https://docs.google.com/spreadsheets/d/1phouX3djWjWWRZWMm7ob7mRRX_x4IRbN2n7109b9b0s/edit?gid=0#gid=0" class="btn" style="text-decoration: none; margin-left: auto; display: inline-block;">Next Page →</a>
+            <button class="btn" onclick="refreshData()" id="refreshBtn" disabled>🔄 Refresh</button>
+            <button class="btn" onclick="downloadData()" id="exportBtn" disabled>📥 Export CSV</button>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Selected Village</h3>
+                <div class="value" id="selectedVillage">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Villages</h3>
+                <div class="value" id="totalVillages">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Week Range</h3>
+                <div class="value" id="weekRange">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Week 1 Volume (KG)</h3>
+                <div class="value" id="startVolume">-</div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h2>📈 Weekly Volume Trend</h2>
+            <div class="chart-wrapper">
+                <canvas id="forecastChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <h2>📋 Weekly Details - <span id="tableTitle">Select a Village</span></h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Village</th>
+                            <th class="numeric">Week No.</th>
+                            <th class="numeric">Volume (KG)</th>
+                            <th class="numeric">1% Growth</th>
+                            <th class="numeric">Next Target</th>
+                            <th class="numeric">Weekly Inc</th>
+                            <th>Status</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="8" style="text-align: center; padding: 40px;"><div class="spinner"></div>Loading data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Dashboard updated: <span id="updateTime">-</span> | ✓ Google Apps Script Connected</p>
+        </div>
+    </div>
+    
+    <script>
+        // YOUR APPS SCRIPT URL
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmKdYeg0UhKjEpxT35yEGwfvxr43JBaUqYZasFTakvCK6p9Q5Se6RiaQsUXFyOY7x0Tg/exec';
+        
+        let allVillageData = {};
+        let weekRange = { min: 1, max: 5 };
+        let currentVillage = null;
+        let filteredData = [];
+        let forecastChart = null;
+        
+        function showError(msg) {
+            const errorBox = document.getElementById('errorBox');
+            errorBox.innerHTML = `<div class="error-box">⚠️ ${msg}</div>`;
+        }
+        
+        function clearError() {
+            document.getElementById('errorBox').innerHTML = '';
+        }
+        
+        function updateStatus(isOnline, message) {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            
+            if (isOnline) {
+                dot.className = 'status-dot online';
+                text.textContent = '✓ ' + message;
+            } else {
+                dot.className = 'status-dot offline';
+                text.textContent = '✗ ' + message;
+            }
+        }
+        
+        async function fetchData() {
+            try {
+                updateStatus(false, 'Fetching data from Google Sheet...');
+                
+                const response = await fetch(APPS_SCRIPT_URL);
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                allVillageData = data.data;
+                weekRange = data.weekRange;
+                
+                document.getElementById('totalVillages').textContent = data.totalVillages;
+                document.getElementById('weekRange').textContent = `${weekRange.minWeek}-${weekRange.maxWeek}`;
+                
+                // Update village filter
+                const villageFilter = document.getElementById('villageFilter');
+                villageFilter.innerHTML = '<option value="">-- Select a Village --</option>';
+                
+                data.villages.forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v;
+                    opt.textContent = v;
+                    villageFilter.appendChild(opt);
+                });
+                
+                // Add OVERALL option
+                const overallOpt = document.createElement('option');
+                overallOpt.value = 'OVERALL';
+                overallOpt.textContent = '📊 OVERALL (All Villages Average)';
+                overallOpt.style.fontWeight = 'bold';
+                overallOpt.style.color = '#0C8542';
+                villageFilter.appendChild(overallOpt);
+                
+                villageFilter.disabled = false;
+                document.getElementById('refreshBtn').disabled = false;
+                document.getElementById('exportBtn').disabled = false;
+                
+                updateStatus(true, 'Connected to Google Sheet');
+                clearError();
+                document.getElementById('lastUpdateText').textContent = 
+                    'Last update: ' + new Date().toLocaleTimeString();
+                document.getElementById('updateTime').textContent = 
+                    new Date().toLocaleString();
+                
+            } catch (error) {
+                console.error(error);
+                updateStatus(false, error.message);
+                showError('Failed to fetch data: ' + error.message);
+            }
+        }
+        
+        function filterAndRender() {
+            const village = document.getElementById('villageFilter').value;
+            
+            if (!village) {
+                document.getElementById('tableBody').innerHTML = 
+                    '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #999;">Select a village</td></tr>';
+                if (forecastChart) forecastChart.destroy();
+                return;
+            }
+            
+            // Handle OVERALL calculation
+            if (village === 'OVERALL') {
+                const allWeeks = new Set();
+                for (const v in allVillageData) {
+                    allVillageData[v].forEach(row => allWeeks.add(row.WeekNo));
+                }
+                
+                const sortedWeeks = Array.from(allWeeks).sort((a, b) => a - b);
+                filteredData = [];
+                let previousVolume = null;
+                
+                for (const weekNum of sortedWeeks) {
+                    let sumAllVillages = 0;
+                    let villagesWithData = 0;
+                    let daysInWeek = 0;
+                    
+                    // Sum volumes from all 10 villages for this week
+                    for (const v in allVillageData) {
+                        const villageWeekData = allVillageData[v].find(row => row.WeekNo === weekNum);
+                        if (villageWeekData) {
+                            // Add the DAILY average volume for each village
+                            sumAllVillages += villageWeekData['Volume (KG)'];
+                            villagesWithData++;
+                            // Days in week (same for all villages in same week)
+                            if (daysInWeek === 0) {
+                                daysInWeek = villageWeekData['Days with Data'] || 1;
+                            }
+                        }
+                    }
+                    
+                    if (villagesWithData > 0) {
+                        // CORRECT FORMULA:
+                        // (Sum of all 10 villages' daily averages) × (Days in week) ÷ (Days in week)
+                        // = Sum of all 10 villages' daily averages
+                        // Then divide by number of days
+                        
+                        const totalWeeklySum = sumAllVillages * daysInWeek;
+                        const avgPerDay = totalWeeklySum / daysInWeek;
+                        
+                        const weekGrowth = avgPerDay * 0.01;
+                        const weekTarget = avgPerDay * 1.01;
+                        
+                        let weekStatus = 'NO';
+                        let weekIncrease = null;
+                        
+                        if (weekNum === sortedWeeks[0]) {
+                            weekStatus = 'BASE';
+                            weekIncrease = null;
+                            previousVolume = avgPerDay;
+                        } else {
+                            const targetToAchieve = previousVolume * 1.01;
+                            weekStatus = (avgPerDay >= targetToAchieve) ? 'YES' : 'NO';
+                            weekIncrease = Math.round((avgPerDay - previousVolume) * 100) / 100;
+                            previousVolume = avgPerDay;
+                        }
+                        
+                        filteredData.push({
+                            Village: 'OVERALL',
+                            WeekNo: weekNum,
+                            'Volume (KG)': Math.round(avgPerDay * 100) / 100,
+                            'Days with Data': daysInWeek,
+                            '1% Growth': Math.round(weekGrowth * 100) / 100,
+                            'Next Weekly Target': Math.round(weekTarget * 100) / 100,
+                            'Weekly Increase': weekIncrease,
+                            'Status': weekStatus,
+                            'Is Actual Data': 'Yes'
+                        });
+                    }
+                }
+                
+                currentVillage = 'OVERALL';
+                document.getElementById('selectedVillage').textContent = 'OVERALL';
+                document.getElementById('tableTitle').textContent = 'OVERALL - All 10 Villages Average';
+                
+                if (filteredData.length > 0) {
+                    document.getElementById('startVolume').textContent = 
+                        filteredData[0]['Volume (KG)'].toLocaleString(undefined, {maximumFractionDigits: 2}) + ' KG';
+                }
+                
+                renderChart();
+                renderTable();
+                return;
+            }
+            
+            if (!allVillageData[village]) {
+                document.getElementById('tableBody').innerHTML = 
+                    '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #999;">Select a village</td></tr>';
+                if (forecastChart) forecastChart.destroy();
+                return;
+            }
+            
+            currentVillage = village;
+            filteredData = allVillageData[village];
+            
+            document.getElementById('selectedVillage').textContent = village;
+            document.getElementById('tableTitle').textContent = village;
+            
+            if (filteredData.length > 0) {
+                document.getElementById('startVolume').textContent = 
+                    filteredData[0]['Volume (KG)'].toLocaleString(undefined, {maximumFractionDigits: 2}) + ' KG';
+            }
+            
+            renderChart();
+            renderTable();
+        }
+        
+        function renderChart() {
+            if (filteredData.length === 0) return;
+            
+            const ctx = document.getElementById('forecastChart');
+            const labels = filteredData.map(d => `W${d.WeekNo}`);
+            const volumes = filteredData.map(d => d['Volume (KG)']);
+            
+            if (forecastChart) forecastChart.destroy();
+            
+            forecastChart = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: currentVillage + ' Volume (KG)',
+                        data: volumes,
+                        borderColor: '#0C8542',
+                        backgroundColor: 'rgba(12, 133, 66, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#0C8542',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: true },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    return ctx.parsed.y.toLocaleString(undefined, {maximumFractionDigits: 2}) + ' KG';
+                                }
+                            }
+                        }
+                    },
+                    scales: { 
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { callback: v => v.toLocaleString(undefined, {maximumFractionDigits: 0}) } 
+                        } 
+                    }
+                }
+            });
+        }
+        
+        function renderTable() {
+            let html = '';
+            filteredData.forEach((row, idx) => {
+                const volumeKG = row['Volume (KG)'];
+                
+                // Display status with colors
+                let statusDisplay = '';
+                if (row['Status'] === 'YES') {
+                    statusDisplay = '<span style="color: #0C8542; font-weight: bold;">✓ YES</span>';
+                } else if (row['Status'] === 'NO') {
+                    statusDisplay = '<span style="color: #D81F26; font-weight: bold;">✗ NO</span>';
+                } else if (row['Status'] === 'BASE') {
+                    statusDisplay = '<span style="color: #666; font-weight: bold;">— BASE</span>';
+                }
+                
+                // Format Weekly Increase with + or - sign
+                let weeklyIncDisplay = '-';
+                if (row['Weekly Increase'] !== null) {
+                    const inc = row['Weekly Increase'];
+                    if (inc > 0) {
+                        weeklyIncDisplay = `<span style="color: #0C8542; font-weight: bold;">+${inc.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>`;
+                    } else if (inc < 0) {
+                        weeklyIncDisplay = `<span style="color: #D81F26; font-weight: bold;">${inc.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>`;
+                    } else {
+                        weeklyIncDisplay = '<span style="color: #666;">0.00</span>';
+                    }
+                }
+                
+                const type = row['Is Actual Data'] === 'Yes' ? '✓ Actual' : '📈 Forecast';
+                html += `
+                    <tr>
+                        <td><span class="village-badge">${row.Village}</span></td>
+                        <td class="numeric"><strong>W${row.WeekNo}</strong></td>
+                        <td class="numeric"><strong>${volumeKG.toLocaleString(undefined, {maximumFractionDigits: 2})}</strong></td>
+                        <td class="numeric">${row['1% Growth'].toLocaleString(undefined, {maximumFractionDigits: 2})}</td>
+                        <td class="numeric"><strong>${row['Next Weekly Target'].toLocaleString(undefined, {maximumFractionDigits: 2})}</strong></td>
+                        <td class="numeric">${weeklyIncDisplay}</td>
+                        <td>${statusDisplay}</td>
+                        <td>${type}</td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('tableBody').innerHTML = html;
+        }
+        
+        function refreshData() {
+            const btn = document.getElementById('refreshBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Refreshing...';
+            
+            fetchData().then(() => {
+                btn.textContent = '🔄 Refresh';
+                btn.disabled = false;
+                filterAndRender();
+            });
+        }
+        
+        function downloadData() {
+            if (!currentVillage || filteredData.length === 0) {
+                alert('Select a village first');
+                return;
+            }
+            
+            let csv = 'Village,Week,Volume (KG),1% Growth,Next Target,Weekly Increase,Status,Type\n';
+            filteredData.forEach(row => {
+                const volumeKG = row['Volume (KG)'];
+                const weeklyInc = row['Weekly Increase'] !== null ? 
+                    (row['Weekly Increase'] > 0 ? '+' + row['Weekly Increase'] : row['Weekly Increase']) : '-';
+                
+                csv += `${row.Village},W${row.WeekNo},${volumeKG},${row['1% Growth']},${row['Next Weekly Target']},${weeklyInc},${row['Status']},${row['Is Actual Data']}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const filename = currentVillage === 'OVERALL' ? 'overall_average.csv' : `${currentVillage}_weekly_data.csv`;
+            a.download = filename;
+            a.click();
+        }
+        
+        // Auto-load on page load
+        window.addEventListener('DOMContentLoaded', fetchData);
+    </script>
+</body>
+</html>
