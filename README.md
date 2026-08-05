@@ -1,1 +1,0 @@
-# Weekly-1-Growth
